@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Productivity Apps",
+  "version": "1.0.0",
+  "description": "Run modular mini-apps on any webpage with auto-run rules and on-demand execution",
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "contextMenus",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Mini-Apps Sidebar"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "options_page": "options.html",
+  "commands": {
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      },
+      "description": "Toggle sidebar"
+    },
+    "run-last-app": {
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      },
+      "description": "Re-run last app on current tab"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
