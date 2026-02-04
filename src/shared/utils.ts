@@ -62,12 +62,12 @@ export function injectStyle(css: string): HTMLStyleElement {
 
 export function createToast(message: string, type: "success" | "error" | "info" = "info") {
   const toast = document.createElement("div");
-  toast.className = `miniapps-toast miniapps-toast--${type}`;
+  toast.className = `productivityapps-toast productivityapps-toast--${type}`;
   toast.textContent = message;
   
   const style = document.createElement("style");
   style.textContent = `
-    .miniapps-toast {
+    .productivityapps-toast {
       position: fixed;
       bottom: 20px;
       right: 20px;
@@ -79,26 +79,26 @@ export function createToast(message: string, type: "success" | "error" | "info" 
       font-family: system-ui, -apple-system, sans-serif;
       font-size: 14px;
       z-index: 2147483647;
-      animation: miniapps-slide-in 0.3s ease;
+      animation: productivityapps-slide-in 0.3s ease;
     }
-    .miniapps-toast--success { background: #059669; }
-    .miniapps-toast--error { background: #dc2626; }
-    .miniapps-toast--info { background: #2563eb; }
-    @keyframes miniapps-slide-in {
+    .productivityapps-toast--success { background: #059669; }
+    .productivityapps-toast--error { background: #dc2626; }
+    .productivityapps-toast--info { background: #2563eb; }
+    @keyframes productivityapps-slide-in {
       from { transform: translateX(400px); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
   `;
   
-  if (!document.head.querySelector('style[data-miniapps-toast]')) {
-    style.setAttribute('data-miniapps-toast', 'true');
+  if (!document.head.querySelector('style[data-productivityapps-toast]')) {
+    style.setAttribute('data-productivityapps-toast', 'true');
     document.head.appendChild(style);
   }
   
   document.body.appendChild(toast);
   
   setTimeout(() => {
-    toast.style.animation = 'miniapps-slide-in 0.3s ease reverse';
+    toast.style.animation = 'productivityapps-slide-in 0.3s ease reverse';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }

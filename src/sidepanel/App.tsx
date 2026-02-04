@@ -135,7 +135,7 @@ export function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `miniapps-export-${Date.now()}.json`;
+      a.download = `productivityapps-export-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {

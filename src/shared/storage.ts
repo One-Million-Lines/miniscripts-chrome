@@ -2,10 +2,10 @@
 import { MiniApp, ExecutionLog } from "./types";
 
 const STORAGE_KEYS = {
-  APPS: "miniapps_apps",
-  LAST_RUN: "miniapps_last_run",
-  SETTINGS: "miniapps_settings",
-  EXECUTION_LOGS: "miniapps_execution_logs",
+  APPS: "productivityapps_apps",
+  LAST_RUN: "productivityapps_last_run",
+  SETTINGS: "productivityapps_settings",
+  EXECUTION_LOGS: "productivityapps_execution_logs",
 };
 
 export async function getAllApps(): Promise<MiniApp[]> {

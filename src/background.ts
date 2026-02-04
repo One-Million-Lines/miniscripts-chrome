@@ -40,7 +40,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
   // Create context menu
   chrome.contextMenus.create({
-    id: "miniapps-run",
+    id: "productivityapps-run",
     title: "Run with Mini-Apps",
     contexts: ["page"],
   });
@@ -50,7 +50,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     if (app.enabled) {
       chrome.contextMenus.create({
         id: `miniapp-${app.id}`,
-        parentId: "miniapps-run",
+        parentId: "productivityapps-run",
         title: app.name,
         contexts: ["page"],
       });
@@ -158,7 +158,7 @@ async function handleMessage(
           if (message.payload.enabled) {
             chrome.contextMenus.create({
               id: `miniapp-${message.payload.id}`,
-              parentId: "miniapps-run",
+              parentId: "productivityapps-run",
               title: message.payload.name,
               contexts: ["page"],
             });
