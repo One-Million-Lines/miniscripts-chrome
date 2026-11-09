@@ -4,8 +4,8 @@ This project contains a complete Chrome Extension with modular mini-apps archite
 
 ## Prerequisites
 
-- Node.js 16+ and npm installed
-- Chrome browser (version 114+ recommended for native side panel support)
+- Node.js 22.18+ and npm installed
+- Chrome 135+ with user-script access enabled
 
 ## Build Steps
 
@@ -31,6 +31,7 @@ This will create a `dist` folder with all the extension files ready to load.
 2. Enable "Developer mode" (toggle in top-right corner)
 3. Click "Load unpacked"
 4. Select the `dist` folder from this project
+5. In MiniScripts Details, enable Allow User Scripts (Chrome 138+) or Developer mode (Chrome 135–137), then reload the extension and website
 
 The extension is now installed!
 

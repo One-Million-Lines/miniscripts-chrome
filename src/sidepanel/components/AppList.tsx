@@ -11,29 +11,35 @@ interface AppListProps {
   onToggle: (appId: string, enabled: boolean) => void;
   onEdit: (app: MiniApp) => void;
   onDelete: (appId: string) => void;
+  onLoadSamples?: () => void;
 }
 
-export function AppList({ apps, onRun, onToggle, onEdit, onDelete }: AppListProps) {
+export function AppList({ apps, onRun, onToggle, onEdit, onDelete, onLoadSamples }: AppListProps) {
   if (apps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Package className="w-12 h-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium text-muted-foreground">No apps found</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          Click the + button to create your first app
+        <p className="text-lg font-medium text-muted-foreground">No scripts yet</p>
+        <p className="text-sm text-muted-foreground mt-2 mb-4">
+          Click the + button to create your first script
         </p>
+        {onLoadSamples && (
+          <Button variant="outline" size="sm" onClick={onLoadSamples}>
+            Load sample scripts
+          </Button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {apps.map((app) => (
         <Card key={app.id} className="transition-shadow hover:shadow-md">
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3 pb-1.5">
             <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <h4 className="font-semibold text-base leading-none">{app.name}</h4>
+              <div className="space-y-0.5">
+                <h4 className="font-semibold text-sm leading-none">{app.name}</h4>
                 {app.version && (
                   <p className="text-xs text-muted-foreground">v{app.version}</p>
                 )}
@@ -47,9 +53,9 @@ export function AppList({ apps, onRun, onToggle, onEdit, onDelete }: AppListProp
             </div>
           </CardHeader>
           
-          <CardContent className="space-y-2">
+          <CardContent className="px-3 pb-3 pt-0 space-y-1.5">
             {app.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-snug">
                 {app.description}
               </p>
             )}
@@ -71,7 +77,7 @@ export function AppList({ apps, onRun, onToggle, onEdit, onDelete }: AppListProp
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 size="xs"
                 onClick={() => { 
@@ -81,7 +87,7 @@ export function AppList({ apps, onRun, onToggle, onEdit, onDelete }: AppListProp
                 disabled={!app.enabled}
                 className="flex-1"
               >
-                <Play className="w-4 h-4 mr-2" />
+                <Play className="w-3 h-3 mr-1.5" />
                 Run now
               </Button>
               <Button 
@@ -89,14 +95,14 @@ export function AppList({ apps, onRun, onToggle, onEdit, onDelete }: AppListProp
                 size="xs" 
                 onClick={() => onEdit(app)}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-3 h-3" />
               </Button>
               <Button 
                 variant="outline" 
                 size="xs" 
                 onClick={() => onDelete(app.id)}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3 h-3" />
               </Button>
             </div>
           </CardContent>

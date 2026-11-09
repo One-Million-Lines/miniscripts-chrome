@@ -31,7 +31,7 @@ export function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `productivityapps-backup-${Date.now()}.json`;
+      a.download = `miniscripts-backup-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -76,8 +76,8 @@ export function App() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Mini-Apps Options</h1>
-          <p className="text-muted-foreground">Manage your mini-apps and extension settings</p>
+          <h1 className="text-3xl font-bold tracking-tight">MiniScripts Options</h1>
+          <p className="text-muted-foreground">Manage your miniscripts and extension settings</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -166,7 +166,7 @@ export function App() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0" />
-                Right-click on any page to access the "Run with Mini-Apps" context menu
+                Right-click on any page to access the "Run with MiniScripts" context menu
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0" />

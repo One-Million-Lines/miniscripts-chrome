@@ -62,12 +62,12 @@ export function injectStyle(css: string): HTMLStyleElement {
 
 export function createToast(message: string, type: "success" | "error" | "info" = "info") {
   const toast = document.createElement("div");
-  toast.className = `productivityapps-toast productivityapps-toast--${type}`;
+  toast.className = `miniscripts-toast miniscripts-toast--${type}`;
   toast.textContent = message;
   
   const style = document.createElement("style");
   style.textContent = `
-    .productivityapps-toast {
+    .miniscripts-toast {
       position: fixed;
       bottom: 20px;
       right: 20px;
@@ -79,26 +79,26 @@ export function createToast(message: string, type: "success" | "error" | "info" 
       font-family: system-ui, -apple-system, sans-serif;
       font-size: 14px;
       z-index: 2147483647;
-      animation: productivityapps-slide-in 0.3s ease;
+      animation: miniscripts-slide-in 0.3s ease;
     }
-    .productivityapps-toast--success { background: #059669; }
-    .productivityapps-toast--error { background: #dc2626; }
-    .productivityapps-toast--info { background: #2563eb; }
-    @keyframes productivityapps-slide-in {
+    .miniscripts-toast--success { background: #059669; }
+    .miniscripts-toast--error { background: #dc2626; }
+    .miniscripts-toast--info { background: #2563eb; }
+    @keyframes miniscripts-slide-in {
       from { transform: translateX(400px); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
   `;
   
-  if (!document.head.querySelector('style[data-productivityapps-toast]')) {
-    style.setAttribute('data-productivityapps-toast', 'true');
+  if (!document.head.querySelector('style[data-miniscripts-toast]')) {
+    style.setAttribute('data-miniscripts-toast', 'true');
     document.head.appendChild(style);
   }
   
   document.body.appendChild(toast);
   
   setTimeout(() => {
-    toast.style.animation = 'productivityapps-slide-in 0.3s ease reverse';
+    toast.style.animation = 'miniscripts-slide-in 0.3s ease reverse';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }

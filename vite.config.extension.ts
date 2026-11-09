@@ -8,8 +8,8 @@ function copyManifestPlugin() {
   return {
     name: "copy-manifest",
     closeBundle() {
-      const manifestSrc = resolve(__dirname, "manifest.json");
-      const manifestDest = resolve(__dirname, "dist/manifest.json");
+      const manifestSrc = resolve(import.meta.dirname, "manifest.json");
+      const manifestDest = resolve(import.meta.dirname, "dist/manifest.json");
       copyFileSync(manifestSrc, manifestDest);
     },
   };
@@ -20,7 +20,7 @@ export default defineConfig({
   plugins: [react(), copyManifestPlugin()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
   build: {
@@ -28,10 +28,10 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        background: resolve(__dirname, "src/background.ts"),
-        contentRunner: resolve(__dirname, "src/contentRunner.ts"),
-        sidepanel: resolve(__dirname, "sidepanel.html"),
-        options: resolve(__dirname, "options.html"),
+        background: resolve(import.meta.dirname, "src/background.ts"),
+        contentRunner: resolve(import.meta.dirname, "src/contentRunner.ts"),
+        sidepanel: resolve(import.meta.dirname, "sidepanel.html"),
+        options: resolve(import.meta.dirname, "options.html"),
       },
       output: {
         entryFileNames: "[name].js",

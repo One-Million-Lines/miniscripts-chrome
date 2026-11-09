@@ -1,134 +1,64 @@
-import { MiniAppContext } from "../shared/types";
-
-export default async function run(ctx: MiniAppContext): Promise<void> {
-  // Load saved position and size
-  const savedState = await ctx.storage.get<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }>("overlayState", {
-    x: 100,
-    y: 100,
-    width: 300,
-    height: 200,
-  });
-
-  // Create overlay
-  const overlay = ctx.document.createElement("div");
+export default async function run(ctx) {
+  const doc = ctx.document;
+  const saved = await ctx.storage.get("overlayState", {});
+  const finite = (value, fallback) => Number.isFinite(value) ? value : fallback;
+  const state = {
+    width: Math.min(Math.max(100, finite(saved.width, 300)), Math.max(100, innerWidth)),
+    height: Math.min(Math.max(100, finite(saved.height, 200)), Math.max(100, innerHeight)),
+    x: Math.max(0, Math.min(finite(saved.x, 100), Math.max(0, innerWidth - 100))),
+    y: Math.max(0, Math.min(finite(saved.y, 100), Math.max(0, innerHeight - 100))),
+  };
+  // Re-running replaces the previous overlay and tears down its listeners.
+  doc.getElementById("miniapp-blur-overlay")?.dispatchEvent(new Event("miniscripts-remove"));
+  const controller = new AbortController();
+  const listen = (target, name, fn) => target.addEventListener(name, fn, { signal: controller.signal });
+  const overlay = doc.createElement("div");
   overlay.id = "miniapp-blur-overlay";
-  overlay.style.cssText = `
-    position: fixed;
-    left: ${savedState.x}px;
-    top: ${savedState.y}px;
-    width: ${savedState.width}px;
-    height: ${savedState.height}px;
-    backdrop-filter: blur(6px);
-    background: rgba(0, 0, 0, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    cursor: move;
-    z-index: 2147483646;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  `;
-
-  // Add resize handle
-  const resizeHandle = ctx.document.createElement("div");
-  resizeHandle.style.cssText = `
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    cursor: se-resize;
-    background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.5) 50%);
-  `;
-  overlay.appendChild(resizeHandle);
-
-  // Add close button
-  const closeBtn = ctx.document.createElement("div");
-  closeBtn.textContent = "×";
-  closeBtn.style.cssText = `
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    line-height: 1;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  `;
-  overlay.appendChild(closeBtn);
-
-  // Dragging
-  let isDragging = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let overlayStartX = savedState.x;
-  let overlayStartY = savedState.y;
-
-  overlay.addEventListener("mousedown", (e) => {
-    if (e.target === resizeHandle || e.target === closeBtn) return;
-    isDragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    overlayStartX = overlay.offsetLeft;
-    overlayStartY = overlay.offsetTop;
-    e.preventDefault();
+  overlay.setAttribute("aria-label", "Draggable blur overlay");
+  overlay.style.cssText = `position:fixed;box-sizing:border-box;left:${state.x}px;top:${state.y}px;width:${state.width}px;height:${state.height}px;backdrop-filter:blur(6px);background:#0002;border:2px solid #ffffff80;border-radius:8px;cursor:move;z-index:2147483646;box-shadow:0 4px 12px #0003;touch-action:none;`;
+  const handle = doc.createElement("div");
+  handle.setAttribute("aria-label", "Resize blur overlay");
+  handle.style.cssText = "position:absolute;bottom:0;right:0;width:22px;height:22px;cursor:se-resize;background:linear-gradient(135deg,transparent 50%,#ffffff80 50%);";
+  const close = doc.createElement("button");
+  close.type = "button";
+  close.textContent = "×";
+  close.setAttribute("aria-label", "Remove blur overlay");
+  close.style.cssText = "position:absolute;top:2px;right:5px;color:white;background:#0005;border:0;border-radius:4px;font:24px/1 system-ui;cursor:pointer;";
+  overlay.append(handle, close);
+  let drag = null;
+  const remove = () => { controller.abort(); overlay.remove(); };
+  listen(overlay, "miniscripts-remove", remove);
+  listen(close, "click", remove);
+  listen(doc, "keydown", event => { if (event.key === "Escape") remove(); });
+  listen(overlay, "pointerdown", event => {
+    if (event.button !== 0 || event.target === close) return;
+    drag = { x: event.clientX, y: event.clientY, ...state, resize: event.target === handle };
+    // Preserve pointer coordinates separately from the overlay's saved coordinates.
+    drag.pointerX = event.clientX; drag.pointerY = event.clientY;
+    overlay.setPointerCapture(event.pointerId);
+    event.preventDefault();
   });
-
-  // Resizing
-  let isResizing = false;
-  let resizeStartX = 0;
-  let resizeStartY = 0;
-  let startWidth = savedState.width;
-  let startHeight = savedState.height;
-
-  resizeHandle.addEventListener("mousedown", (e) => {
-    isResizing = true;
-    resizeStartX = e.clientX;
-    resizeStartY = e.clientY;
-    startWidth = overlay.offsetWidth;
-    startHeight = overlay.offsetHeight;
-    e.stopPropagation();
-    e.preventDefault();
-  });
-
-  ctx.document.addEventListener("mousemove", (e) => {
-    if (isDragging) {
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
-      overlay.style.left = `${overlayStartX + dx}px`;
-      overlay.style.top = `${overlayStartY + dy}px`;
-    } else if (isResizing) {
-      const dx = e.clientX - resizeStartX;
-      const dy = e.clientY - resizeStartY;
-      overlay.style.width = `${Math.max(100, startWidth + dx)}px`;
-      overlay.style.height = `${Math.max(100, startHeight + dy)}px`;
+  listen(overlay, "pointermove", event => {
+    if (!drag) return;
+    const dx = event.clientX - drag.pointerX, dy = event.clientY - drag.pointerY;
+    if (drag.resize) {
+      state.width = Math.max(100, Math.min(drag.width + dx, innerWidth - state.x));
+      state.height = Math.max(100, Math.min(drag.height + dy, innerHeight - state.y));
+      overlay.style.width = `${state.width}px`; overlay.style.height = `${state.height}px`;
+    } else {
+      state.x = Math.max(0, Math.min(drag.x + dx, innerWidth - 40));
+      state.y = Math.max(0, Math.min(drag.y + dy, innerHeight - 40));
+      overlay.style.left = `${state.x}px`; overlay.style.top = `${state.y}px`;
     }
   });
-
-  ctx.document.addEventListener("mouseup", async () => {
-    if (isDragging || isResizing) {
-      // Save state
-      await ctx.storage.set("overlayState", {
-        x: overlay.offsetLeft,
-        y: overlay.offsetTop,
-        width: overlay.offsetWidth,
-        height: overlay.offsetHeight,
-      });
-    }
-    isDragging = false;
-    isResizing = false;
-  });
-
-  // Close on button click or ESC
-  closeBtn.addEventListener("click", () => overlay.remove());
-
-  ctx.document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") overlay.remove();
-  });
-
-  ctx.document.body.appendChild(overlay);
-  ctx.ui.notify("Blur overlay added. Drag to move, resize from corner, ESC to remove.");
+  const finish = () => {
+    if (!drag) return;
+    drag = null;
+    void ctx.storage.set("overlayState", state).catch(error => ctx.ui.notify(`Could not save overlay position: ${error}`));
+  };
+  listen(overlay, "pointerup", finish);
+  listen(overlay, "pointercancel", finish);
+  listen(overlay, "lostpointercapture", finish);
+  (doc.body || doc.documentElement).append(overlay);
+  ctx.ui.notify("Blur overlay added. Drag to move, resize from corner, Esc to remove.");
 }

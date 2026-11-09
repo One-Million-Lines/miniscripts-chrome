@@ -165,8 +165,20 @@ export function AppEditor({ app, onSave, onCancel, isCreating }: AppEditorProps)
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="world">Execution world</Label>
+              <Select value={formData.world || "USER_SCRIPT"} onValueChange={value => updateField("world", value as MiniApp["world"])}>
+                <SelectTrigger id="world"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USER_SCRIPT">Isolated (independent of page CSP)</SelectItem>
+                  <SelectItem value="MAIN">Page (access page globals and prototypes)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Page world shares the site's JavaScript environment. Its CSP still applies to eval, remote resources, and network requests.</p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="code">
-                Code * (must export default async function)
+                JavaScript * (default export, run function, or console snippet)
               </Label>
               <Textarea
                 id="code"

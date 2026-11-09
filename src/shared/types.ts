@@ -7,6 +7,7 @@ export interface MiniApp {
   autoRun: boolean;
   matchPatterns: string[];
   runAt?: "document_idle" | "document_end" | "document_start" | "click";
+  world?: "USER_SCRIPT" | "MAIN";
   code: string;
   icon?: string;
   createdAt: number;
@@ -14,6 +15,7 @@ export interface MiniApp {
 }
 
 export interface MiniAppContext {
+  /** Zero at auto-run startup; await helpers.getTabId() when a tab ID is needed. */
   tabId: number;
   url: string;
   storage: {
@@ -26,6 +28,7 @@ export interface MiniAppContext {
     confirm(message: string): Promise<boolean>;
   };
   helpers: {
+    getTabId(): Promise<number>;
     waitForSelector(selector: string, timeoutMs?: number): Promise<Element | null>;
     injectStyle(css: string): HTMLStyleElement;
   };
@@ -53,7 +56,8 @@ export type MessageType =
   | { type: "GET_EXECUTION_LOGS"; payload?: never }
   | { type: "GET_EXECUTION_LOGS_RESPONSE"; payload: ExecutionLog[] }
   | { type: "CLEAR_EXECUTION_LOGS"; payload?: never }
-  | { type: "DELETE_EXECUTION_LOG"; payload: string };
+  | { type: "DELETE_EXECUTION_LOG"; payload: string }
+  | { type: "LOAD_SAMPLES"; payload?: never };
 
 export interface AppExecutionResult {
   success: boolean;

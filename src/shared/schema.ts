@@ -57,8 +57,8 @@ export function validateMiniApp(app: Partial<MiniApp>): { valid: boolean; errors
     errors.push("Code is required and must be a string");
   }
 
-  if (app.code && !app.code.includes("export default")) {
-    errors.push("Code must export a default async function");
+  if (app.world && !["USER_SCRIPT", "MAIN"].includes(app.world)) {
+    errors.push("Execution world must be USER_SCRIPT or MAIN");
   }
 
   if (app.runAt && !["document_idle", "document_end", "document_start", "click"].includes(app.runAt)) {

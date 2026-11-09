@@ -1,10 +1,10 @@
-# Mini-Apps Chrome Extension
+# MiniScripts Chrome Extension
 
-A Manifest V3 Chrome Extension that lets you run modular "mini-apps" (user scripts) on any webpage. Scripts can run on demand or automatically based on URL patterns.
+A Manifest V3 Chrome Extension that lets you run modular "miniscripts" (user scripts) on any webpage. Scripts can run on demand or automatically based on URL patterns.
 
 ## Features
 
-- **Sidebar Interface**: Clean, searchable list of available mini-apps
+- **Sidebar Interface**: Clean, searchable list of available miniscripts
 - **Run on Demand**: Execute any app instantly on the current tab
 - **Auto-Run**: Set apps to run automatically on pages matching URL patterns
 - **Click-Triggered Apps**: Mark apps that should only run when you press the Run button
@@ -12,12 +12,13 @@ A Manifest V3 Chrome Extension that lets you run modular "mini-apps" (user scrip
   - **Blur Overlay**: Draggable, resizable blur rectangle (press ESC to remove)
   - **Reader Margins**: Toggle reader-friendly typography and layout
   - **Copy All Links**: Extract and copy all HTTP(S) links to clipboard
+  - **LinkedIn Image Paste**: Hand pasted images to the local post/comment uploader
 - **Import/Export**: Backup and share your app collection as JSON
 - **Context Menu**: Right-click to run apps
 - **Keyboard Shortcuts**:
   - `Alt+Shift+M`: Toggle sidebar
   - `Alt+Shift+R`: Re-run last app
-- **Chrome Sync**: Settings sync across your devices
+- **Local Storage**: Scripts and per-script data persist in extension storage
 
 ## Installation
 
@@ -31,7 +32,7 @@ A Manifest V3 Chrome Extension that lets you run modular "mini-apps" (user scrip
 
 3. **Build the Extension**:
    ```bash
-   npm run build:extension
+   npm run build
    ```
 
 4. **Load in Chrome**:
@@ -39,6 +40,8 @@ A Manifest V3 Chrome Extension that lets you run modular "mini-apps" (user scrip
    - Enable "Developer mode" (toggle in top-right)
    - Click "Load unpacked"
    - Select the `dist` folder from this project
+   - Open MiniScripts Details and enable **Allow User Scripts** (Chrome 138+); Chrome 135–137 uses Developer mode
+   - Reload the extension and the website after changing script access
 
 ## Usage
 
@@ -46,14 +49,14 @@ A Manifest V3 Chrome Extension that lets you run modular "mini-apps" (user scrip
 
 - Click the extension icon in the toolbar
 - Or press `Alt+Shift+M`
-- Or right-click on any page and select "Run with Mini-Apps"
+- Or right-click on any page and select "Run with MiniScripts"
 
 ### Running an App
 
 1. Open the sidebar
 2. Find the app you want to run
 3. Click the "Run" button
-4. Or use the context menu (right-click → "Run with Mini-Apps" → select app)
+4. Or use the context menu (right-click → "Run with MiniScripts" → select app)
 
 ### Creating a New App
 
@@ -105,7 +108,7 @@ Each mini-app receives a `ctx` context object:
 
 ```typescript
 interface MiniAppContext {
-  tabId: number;              // Current tab ID
+  tabId: number;              // Tab ID for manual runs; 0 at auto-run startup
   url: string;                // Current page URL
   
   storage: {
@@ -120,6 +123,7 @@ interface MiniAppContext {
   };
   
   helpers: {
+    getTabId(): Promise<number>; // Resolve current tab ID (including auto-run)
     waitForSelector(selector: string, timeoutMs?: number): Promise<Element | null>;
     injectStyle(css: string): HTMLStyleElement;
   };
@@ -130,36 +134,42 @@ interface MiniAppContext {
 }
 ```
 
-## Security
+## Execution and security
 
-- **No eval**: Scripts loaded as ES6 modules via Blob URLs
-- **Strict CSP**: Extension pages use strict Content Security Policy
-- **No remote code**: All code stored locally
-- **Isolated execution**: Apps run in content script isolated world
-- **30s timeout**: Prevents infinite loops
+- Chrome's `userScripts` API accepts user code as source; the extension does not use eval, Function constructors, inline script tags, or Blob modules to execute it.
+- The default `USER_SCRIPT` world is exempt from page CSP and shares the DOM, but not page JavaScript globals. Its own CSP allows user scripts to evaluate strings.
+- Select **Page** world to access page globals/prototypes, as required by LinkedIn Image Paste. Source injection works with strict CSP; subsequent eval and remote resource loading remain subject to page restrictions.
+- Both worlds use per-script extension storage. The page bridge supports only scoped storage and auto-run result messages, never script management.
+- The 30-second deadline reports unfinished async work; it does not interrupt infinite loops or cancel pending work.
+- Chrome internal pages, the Chrome Web Store, other extensions, and protected viewers remain restricted. Local files need **Allow access to file URLs**. Network APIs retain browser CORS restrictions.
+
+Code may be a default function export, a `run`/`app` function, or a console-style JavaScript snippet with `await`. TypeScript annotations and module imports are not supported.
 
 ## Permissions
 
 - `storage`: Save settings and app data
-- `scripting`: Inject and execute apps
+- `scripting`: Install the isolated page-world storage bridge
+- `userScripts`: Inject user-provided code and register auto-run rules
 - `activeTab`: Access current tab content
 - `tabs`: Query tab state
 - `contextMenus`: Right-click menu integration
-- `sidePanel`: Native sidebar (Chrome 114+)
+- `sidePanel`: Native sidebar (Chrome 135+)
 - `host_permissions`: Execute on all URLs (required for auto-run)
 
 ## Troubleshooting
 
 ### Side Panel Not Available
 
-If your Chrome version doesn't support `chrome.sidePanel` (< v114), the extension will fall back to an in-page sidebar. Update Chrome to use the native side panel.
+MiniScripts requires Chrome 135 or newer, with native side-panel and user-script support.
 
 ### App Not Running
 
 - Check that the app is **enabled** (toggle in sidebar)
 - Verify match patterns include the current URL
 - Check the browser console for errors (F12)
-- Ensure code exports `export default async function run(ctx)`
+- Enable Allow User Scripts in extension details, then reload the extension and page
+- Use the execution history to inspect syntax and runtime errors
+- Update bundled samples through Settings → Reload sample scripts (custom scripts are kept)
 
 ### Clipboard Access Denied
 
@@ -172,18 +182,19 @@ Some pages block clipboard access. The "Copy All Links" app includes a fallback 
 ```
 /src
   /background.ts          # Service worker
-  /contentRunner.ts       # In-page script executor
+  /contentRunner.ts       # Scoped storage bridge for page-world scripts
+  /execution              # JavaScript preparation, source generation, userScripts API
   /sidepanel              # Sidebar UI (React)
   /options                # Options page (React)
   /shared                 # Shared utilities, types, storage
-  /samples                # Sample mini-apps
+  /samples                # Sample miniscripts
   /styles                 # CSS
 ```
 
 ### Building
 
 ```bash
-npm run build:extension   # Production build
+npm run build   # Production build
 npm run dev               # Development with HMR (sidebar/options only)
 ```
 

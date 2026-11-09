@@ -1,15 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Productivity Apps",
-  "version": "1.0.0",
-  "description": "Run modular mini-apps on any webpage with auto-run rules and on-demand execution",
+  "name": "MiniScripts",
+  "version": "1.1.0",
+  "description": "Run modular miniscripts on any webpage with auto-run rules and on-demand execution",
   "permissions": [
     "storage",
     "scripting",
     "activeTab",
     "tabs",
     "contextMenus",
-    "sidePanel"
+    "sidePanel",
+    "userScripts"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -19,7 +20,7 @@
     "type": "module"
   },
   "action": {
-    "default_title": "Open Mini-Apps Sidebar"
+    "default_title": "Open MiniScripts Sidebar"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -46,5 +47,17 @@
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
-  }
+  },
+  "minimum_chrome_version": "135",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentRunner.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
 }

@@ -1,6 +1,4 @@
-import { MiniAppContext } from "../shared/types";
-
-export default async function run(ctx: MiniAppContext): Promise<void> {
+export default async function run(ctx) {
   const STYLE_ID = "miniapp-reader-margins";
 
   // Check if already applied

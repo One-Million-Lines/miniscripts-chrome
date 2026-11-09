@@ -22,6 +22,7 @@ export function App() {
   const [isCreating, setIsCreating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
 
   useEffect(() => {
     loadApps();
@@ -66,23 +67,14 @@ export function App() {
   }
 
   async function handleRunApp(appId: string) {
-    console.log("🚀 handleRunApp called with appId:", appId);
+    setRunError(null);
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      console.log("📋 Current tab:", tab);
-      if (!tab?.id) {
-        console.warn("❌ No active tab found");
-        return;
-      }
-
-      console.log("📨 Sending RUN_APP message...");
-      await sendMessage({
-        type: "RUN_APP",
-        payload: { appId, tabId: tab.id },
-      });
-      console.log("✅ RUN_APP message sent successfully");
+      if (!tab?.id) throw new Error("No active tab found");
+      const response = await sendMessage({ type: "RUN_APP", payload: { appId, tabId: tab.id } });
+      if (!response.payload?.success) throw new Error(response.payload?.error || response.error || "Script failed");
     } catch (error) {
-      console.error("❌ Failed to run app:", error);
+      setRunError(error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -127,6 +119,15 @@ export function App() {
     }
   }
 
+  async function handleLoadSamples() {
+    try {
+      await sendMessage({ type: "LOAD_SAMPLES" });
+      await loadApps();
+    } catch (error) {
+      console.error("Failed to load samples:", error);
+    }
+  }
+
   async function handleExport() {
     try {
       const response = await sendMessage({ type: "EXPORT_APPS" });
@@ -135,14 +136,14 @@ export function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `productivityapps-export-${Date.now()}.json`;
+      a.download = `miniscripts-export-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to export apps:", error);
     }
   }
-  async function handleConfigSave(config: Record<string, any>) {
+  async function handleConfigSave(config: Record<string, unknown>) {
     // Placeholder for saving configuration settings
     console.log("Configuration saved:", config);
   }
@@ -218,7 +219,7 @@ export function App() {
       <Card className="border-b rounded-none">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Productivity Apps</CardTitle>
+            <CardTitle className="text-lg font-semibold">MiniScripts</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="ghost"
@@ -282,6 +283,7 @@ export function App() {
         </CardHeader>
       </Card>
 
+      {runError && <div role="alert" className="m-4 mb-0 rounded border border-destructive p-3 text-sm text-destructive whitespace-pre-wrap">{runError}</div>}
       <div className="flex-1 overflow-y-auto p-4">
         <AppList
           apps={filteredApps}
@@ -289,6 +291,7 @@ export function App() {
           onToggle={handleToggleApp}
           onEdit={setEditingApp}
           onDelete={handleDeleteApp}
+          onLoadSamples={apps.length === 0 ? handleLoadSamples : undefined}
         />
       </div>
 
@@ -304,6 +307,7 @@ export function App() {
           onClose={() => setShowSettings(false)}
           onExport={handleExport}
           onImport={handleImport}
+          onReloadSamples={handleLoadSamples}
           onSaveConfig={handleConfigSave}
         />
       )}

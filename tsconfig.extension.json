@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.app.json",
+  "include": ["src/background.ts", "src/contentRunner.ts", "src/sidepanel/main.tsx", "src/options/main.tsx", "src/vite-env.d.ts"]
+}
